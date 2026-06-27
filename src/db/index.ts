@@ -1,10 +1,10 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 
-let dbInstance: any = null;
+let dbInstance: NodePgDatabase<typeof schema> | null = null;
 
-function getDb() {
+function getDb(): NodePgDatabase<typeof schema> {
   if (!dbInstance) {
     const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/house_of_edtech';
 
@@ -22,9 +22,9 @@ function getDb() {
   return dbInstance;
 }
 
-// Export db as a proxy to lazily delegate queries to the runtime-initialized client
-export const db = new Proxy({} as any, {
+// Export db as a proxy to lazily delegate queries to the runtime-initialized client with full type safety
+export const db = new Proxy({} as NodePgDatabase<typeof schema>, {
   get(target, prop) {
-    return getDb()[prop];
+    return (getDb() as any)[prop];
   }
 });
